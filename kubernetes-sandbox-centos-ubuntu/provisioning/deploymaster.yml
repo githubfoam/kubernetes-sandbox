@@ -1,0 +1,152 @@
+---
+- hosts:  k8s-master
+  become: yes
+  vars:
+    kubernetes_installed : '1'
+    kubernetes_version : "1.15.2-0"
+    validated_dockerv: "18.09.8-3.el7"
+  tasks:
+    - name: disable SELinux
+      command: setenforce 0
+    - name: disable SELinux on reboot
+      selinux:
+         state: disabled
+    - name: Enable br_netfilter
+      command: modprobe br_netfilter
+    - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: '1'
+        state: present
+    - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: '1'
+        state: present
+    - name: Remove swapfile from /etc/fstab
+      mount:
+          name: "{{ item }}"
+          fstype: swap
+          state: absent
+      with_items:
+          - swap
+          - none
+    - name: Disable swap
+      command: swapoff -a
+    - name: Install the package dependencies for docker-ce
+      yum:
+         name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+         state: present
+         update_cache: true
+    - name: Add  YUM Docker repository.
+      command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    - name: Install Docker
+      yum:
+         name:
+          - 'docker-ce-{{ validated_dockerv }}'
+          - 'docker-ce-cli-{{ validated_dockerv }}'
+          - containerd.io
+         state: present
+         update_cache: true
+    - name: start Docker
+      service:
+         name: docker
+         state: restarted
+         enabled: yes
+    - name: add Kubernetes' YUM repository
+      yum_repository:
+        name: Kubernetes
+        description: Kubernetes YUM repository
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+        gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+        gpgcheck: yes
+    - name: install kubelet
+      yum:
+          name: 'kubelet-{{ kubernetes_version }}'
+          state: present
+          update_cache: true
+    - name: start kubelet
+      service:
+         name: kubelet
+         enabled: yes
+         state: restarted
+    - name: Install kubeadm, kubectl
+      yum:
+         name:
+          - 'kubeadm-{{ kubernetes_version }}'
+          - 'kubectl-{{ kubernetes_version }}'
+         state: present
+         update_cache: true
+    - name: install kubeadm
+      yum:
+          name: 'kubeadm-{{ kubernetes_version }}'
+          state: present
+    - name: install kubectl
+      yum:
+          name: 'kubectl-{{ kubernetes_version }}'
+          state: present
+          # allow_downgrade: yes
+    - name: Configure node ip
+      lineinfile:
+        create: yes
+        state: present
+        path: /etc/default/kubelet
+        line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+    - name: Restart kubelet
+      service:
+        name: kubelet
+        daemon_reload: yes
+        state: restarted
+
+# master specific
+    - name: initialize the cluster
+      # shell: kubeadm init --apiserver-advertise-address=10.0.15.10 --pod-network-cidr=10.244.0.0/16 >> /home/vagrant/cluster_initialized.txt
+      shell: kubeadm init --apiserver-advertise-address=10.0.15.10 --pod-network-cidr=10.244.0.0/16 | sudo tee /home/vagrant/cluster_initialized.txt
+      args:
+        chdir: /home/vagrant
+        creates: cluster_initialized.txt
+
+    - name: create .kube directory
+      become: yes
+      become_user: vagrant
+      file:
+        # path: $HOME/.kube
+        path: /home/vagrant/.kube
+        state: directory
+        mode: 0755
+
+    - name: copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/vagrant/.kube/config
+        remote_src: yes
+        owner: vagrant
+
+    - name: install Pod network
+      become: yes
+      become_user: vagrant
+      # shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml >> /home/vagrant/pod_network_setup.txt
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml | sudo tee /home/vagrant/pod_network_setup.txt
+      args:
+        chdir: /home/vagrant
+        creates: pod_network_setup.txt
+
+    - name: Generate join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+    - name: Copy join command to local file
+      local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+
+    # - name: get join command
+    #   shell: kubeadm token create --print-join-command
+    #   register: join_command_raw
+    #
+    # - name: set join command
+    #   set_fact:
+    #     join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+  roles:
+      - common
