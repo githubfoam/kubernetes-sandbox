@@ -1,0 +1,1 @@
+kubeadm join 192.168.50.10:6443 --token e1pspw.gklg1smpcc8qitjd     --discovery-token-ca-cert-hash sha256:c7d0dc03b5c676cfb0fe294e9f5f8b7417edbc1057f11b6f0b46fc0523ff20d6 
