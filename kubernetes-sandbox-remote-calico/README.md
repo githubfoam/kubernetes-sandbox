@@ -231,38 +231,25 @@ NAME           STATUS   ROLES    AGE   VERSION
 k8s-master01   Ready    master   14m   v1.15.2
 worker01       Ready    <none>   11m   v1.15.2
 worker02       Ready    <none>   11m   v1.15.2
-vagrant@k8s-master01:~$ kubectl get pods --all-namespaces
-NAMESPACE         NAME                                   READY   STATUS    RESTARTS   AGE
-heptio-sonobuoy   sonobuoy                               1/1     Running   0          11m
-kube-system       coredns-5c98db65d4-4dp68               1/1     Running   0          49m
-kube-system       coredns-5c98db65d4-dq57s               1/1     Running   0          49m
-kube-system       etcd-k8s-master01                      1/1     Running   0          48m
-kube-system       kube-apiserver-k8s-master01            1/1     Running   0          48m
-kube-system       kube-controller-manager-k8s-master01   1/1     Running   0          49m
-kube-system       kube-flannel-ds-amd64-5kzjc            1/1     Running   0          47m
-kube-system       kube-flannel-ds-amd64-jtfrv            1/1     Running   0          47m
-kube-system       kube-flannel-ds-amd64-pd7m4            1/1     Running   0          49m
-kube-system       kube-proxy-bbfx2                       1/1     Running   0          49m
-kube-system       kube-proxy-rgh55                       1/1     Running   0          47m
-kube-system       kube-proxy-v8hzl                       1/1     Running   0          47m
-kube-system       kube-scheduler-k8s-master01            1/1     Running   0          48m
+$ kubectl get pods --all-namespaces
+NAMESPACE     NAME                                       READY   STATUS             RESTARTS   AGE
+kube-system   calico-kube-controllers-7bd78b474d-znf6h   1/1     Running            0          26m
+kube-system   calico-node-c799n                          1/1     Running            0          24m
+kube-system   calico-node-fmv4z                          0/1     CrashLoopBackOff   9          26m
+kube-system   calico-node-zjrfm                          1/1     Running            0          24m
+kube-system   coredns-5c98db65d4-5j8vp                   1/1     Running            0          27m
+kube-system   coredns-5c98db65d4-md5pq                   1/1     Running            0          27m
+kube-system   etcd-k8s-master01                          1/1     Running            0          27m
+kube-system   kube-apiserver-k8s-master01                1/1     Running            0          27m
+kube-system   kube-controller-manager-k8s-master01       1/1     Running            0          26m
+kube-system   kube-proxy-6rclt                           1/1     Running            0          24m
+kube-system   kube-proxy-jhfn5                           1/1     Running            0          27m
+kube-system   kube-proxy-k485q                           1/1     Running            0          24m
+kube-system   kube-scheduler-k8s-master01                1/1     Running            0          27m
 ~~~~
 
-~~~~
-vagrant@k8s-master01:~$ sonobuoy run
-Running plugins: e2e, systemd-logs
-ERRO[0000] Preflight checks failed
-ERRO[0000] maximum kubernetes version is 1.14.99, got v1.15.2
-~~~~
 
-~~~~
-kubernetes_version : "=1.15.2-00"
-validated_dockerv: "=5:18.09.8~3-0~ubuntu-xenial"
 
-Cloud Native Computing Foundation (CNCF)
-the Sonobuoy CLI tool
-https://github.com/cncf/k8s-conformance/tree/master/v1.15/kubeadm
-~~~~
 Controlling your cluster from machines other than the control-plane node
 ~~~~
 vagrant@k8s-master01:~$ hostnamectl | grep "Operating System"
@@ -299,12 +286,4 @@ k8s-master01   Ready    master   38m   v1.15.2
 worker01       Ready    <none>   31m   v1.15.2
 worker02       Ready    <none>   30m   v1.15.2
 
-~~~~
-
-
-~~~~
-vagrant@k8s-master01:~$ kubectl get pods --all-namespaces | grep weave
-kube-system   weave-net-89ckd                        2/2     Running   0          50m
-kube-system   weave-net-bvkbw                        2/2     Running   1          50m
-kube-system   weave-net-m6rd2                        2/2     Running   0          57m
 ~~~~

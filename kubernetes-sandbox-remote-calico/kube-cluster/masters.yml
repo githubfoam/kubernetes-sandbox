@@ -18,8 +18,6 @@
         chdir: /home/vagrant
         creates: cluster_initialized.txt
     - name: create .kube directory
-      become: yes
-      become_user: vagrant
       file:
         path: /home/vagrant/.kube
         state: directory
@@ -42,4 +40,3 @@
       args:
         chdir: /home/vagrant
         creates: pod_network_setup.txt
-    
