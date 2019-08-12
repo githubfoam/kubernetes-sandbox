@@ -12,6 +12,19 @@
         - none
     - name: Disable swap
       command: swapoff -a
+
+    # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
+    - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1.pass bridged IPv6 traffic to iptables’ chains
+      sysctl:
+       name: net.bridge.bridge-nf-call-ip6tables
+       value: "1"
+       state: present
+    - name: ensure net.bridge.bridge-nf-call-iptables is set to 1.pass bridged IPv4 traffic to iptables’ chains
+      sysctl:
+       name: net.bridge.bridge-nf-call-iptables
+       value: "1"
+       state: present
+
     - name: Initialize the cluster
       # command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master01 --pod-network-cidr=192.168.0.0/16
       shell: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name k8s-master01 --pod-network-cidr=192.168.0.0/16 >> cluster_initialized.txt
@@ -38,8 +51,8 @@
     # runs kubectl apply to install Flannel.kubectl to create the objects described in the descriptor.[yml|json] file.
     # The kube-flannel.yml file contains the descriptions of objects required for setting up Flannel in the cluster.
     #  https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
-    - name: Install flannel Pod network
-      become: yes
+    - name: Install flannel pod network
+      # become: yes
       become_user: vagrant
       # shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml >> /home/vagrant/pod_network_setup.txt
       shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/62e44c867a2846fefb68bd5f178daf4da3095ccb/Documentation/kube-flannel.yml >> pod_network_setup.txt

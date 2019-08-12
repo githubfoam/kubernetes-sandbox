@@ -51,6 +51,33 @@
       - 'docker-ce{{ validated_dockerv }}'
       - 'docker-ce-cli{{ validated_dockerv }}'
       - containerd.io
+
+    # Setup daemon.
+    # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
+   - name: Uploading daemon.json
+     template:
+          src: daemon.json.j2
+          dest: /etc/docker/daemon.json
+          owner: root
+          group: root
+          mode: 0644
+   - name: Create /etc/systemd/system/docker.service.d if it does not exist
+     file:
+        path: /etc/systemd/system/docker.service.d
+        state: directory
+        mode: '0755'
+   # Restart docker.
+   - name: Run systemctl daemon-reload
+     command: systemctl daemon-reload
+   - name: Run systemctl restart docker
+     command: systemctl restart docker
+   - name: Add vagrant user to docker group
+     user:
+      name: vagrant
+      group: docker
+    # Setup daemon.
+    # https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
+
    - name: install APT Transport HTTPS
      apt:
        name: apt-transport-https
@@ -75,6 +102,9 @@
       packages:
         - 'kubelet{{ kubernetes_version }}'
         - 'kubeadm{{ kubernetes_version }}'
+  handlers:
+  - name: docker status
+    service: name=docker state=started
 
 - hosts: masters
   become: yes

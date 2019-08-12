@@ -247,19 +247,3 @@ kube-system       kube-proxy-rgh55                       1/1     Running   0    
 kube-system       kube-proxy-v8hzl                       1/1     Running   0          47m
 kube-system       kube-scheduler-k8s-master01            1/1     Running   0          48m
 ~~~~
-
-~~~~
-vagrant@k8s-master01:~$ sonobuoy run
-Running plugins: e2e, systemd-logs
-ERRO[0000] Preflight checks failed
-ERRO[0000] maximum kubernetes version is 1.14.99, got v1.15.2
-~~~~
-
-~~~~
-kubernetes_version : "=1.15.2-00"
-validated_dockerv: "=5:18.09.8~3-0~ubuntu-xenial"
-
-Cloud Native Computing Foundation (CNCF)
-the Sonobuoy CLI tool
-https://github.com/cncf/k8s-conformance/tree/master/v1.15/kubeadm
-~~~~
