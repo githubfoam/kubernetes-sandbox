@@ -1,4 +1,4 @@
-# kubernetes sandbox with containerd runtimes flannel
+# kubernetes sandbox with containerd runtimes calico
 
 cross platform(freebsd,lin,win,mac..etc)
 
