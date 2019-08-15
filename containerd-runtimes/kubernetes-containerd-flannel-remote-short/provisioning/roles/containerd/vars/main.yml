@@ -1,0 +1,5 @@
+---
+containerd_release_version: 1.2.7
+distribution_release: xenial
+kubernetes_version : 1.15.2-00
+ansible_python_interpreter: /usr/bin/python3 # debian specificS
