@@ -26,7 +26,6 @@
       - apt-transport-https
       - ca-certificates
       - curl
-      - gnupg-agent
       - software-properties-common
   - name: Add an apt signing key for Docker
     apt_key:
