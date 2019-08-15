@@ -1,0 +1,16 @@
+---
+# [WARNING]: Could not find aptitude. Using apt-get instead fix
+- name: "APT: Install aptitude package"
+  apt:
+   name: aptitude
+   force_apt_get: yes
+- name: "Install required packages on Ubuntu"
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+      - unzip
+      - tar
+      - socat
+  # vars:
+  #   ansible_python_interpreter: /usr/bin/python3

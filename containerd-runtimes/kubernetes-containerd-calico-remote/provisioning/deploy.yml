@@ -1,0 +1,57 @@
+---
+- name: Install kubernetes containerd run times - Debian
+# hosts_entry.yml nsible_eth1.ipv4.address etc environment variables
+# roles\common\tasks\main.yml ansible_distribution etc environment variables
+  gather_facts: true
+  hosts: masters
+  become: yes
+
+  pre_tasks:
+  - name: Setting hostname
+    shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+
+  vars:
+    add_host_entries: true
+    add_resolv_entries: true
+    ansible_python_interpreter: /usr/bin/python3 # Ubuntu specific
+  roles:
+    - common
+    - containerd
+
+
+- name: Install kubernetes containerd run times - Debian
+# hosts_entry.yml nsible_eth1.ipv4.address etc environment variables
+# roles\common\tasks\main.yml ansible_distribution etc environment variables
+  gather_facts: true
+  hosts: workers
+  become: yes
+
+  pre_tasks:
+  - name: Setting hostname
+    shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+
+  vars:
+    add_host_entries: true
+    add_resolv_entries: true
+    ansible_python_interpreter: /usr/bin/python3 # Ubuntu specific
+  roles:
+    - common
+    - containerd
+
+- name: Install kubernetes containerd run times - Redhat
+# hosts_entry.yml nsible_eth1.ipv4.address etc environment variables
+# roles\common\tasks\main.yml ansible_distribution etc environment variables
+  gather_facts: true
+  hosts: remotecontrols
+  become: yes
+
+  pre_tasks:
+  - name: Setting hostname
+    shell: "hostnamectl set-hostname {{ inventory_hostname }}"
+
+  vars:
+    add_host_entries: true
+    add_resolv_entries: true
+
+  roles:
+    - common
