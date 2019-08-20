@@ -1,0 +1,100 @@
+- hosts: localhost
+  become: yes
+  vars:
+    remote_user: "vagrant"
+    users_list:
+    - vagrant
+    # server_list:
+    # - k8s-master01
+    # - worker01
+    # - worker02
+  tasks:
+    # locally create user with keys
+    # - name: Ensure group sudo exists
+    #   group:
+    #     name: sudo
+    #     state: present
+    - name: "Create user accounts and add users to groups"
+      user:
+        name: "{{ item }}"
+        # groups: "sudo"
+        generate_ssh_key: yes
+        ssh_key_type: rsa
+        # echo "devops1badpassword" | mkpasswd --stdin --method=sha-512 --salt="devops1mybadsalt"
+        password: $6$devops1mybadsalt$vPETGtncCxJNPWRbDQ.wf539Ek.5t.GM.VAFtBME6cNEVHkLvxLnfNSuQt8.QZH.gP60Ic7ZAfZNePzOeTkET1
+      with_items: "{{ users_list }}"
+    # - name: Creates the non-root user
+    #   user:
+    #     name: "{{ item }}"
+    #     generate_ssh_key: yes
+    #     # echo "devops1badpassword" | mkpasswd --stdin --method=sha-512 --salt="devops1mybadsalt"
+    #     password: $6$devops1mybadsalt$vPETGtncCxJNPWRbDQ.wf539Ek.5t.GM.VAFtBME6cNEVHkLvxLnfNSuQt8.QZH.gP60Ic7ZAfZNePzOeTkET1
+    #     # ssh_key_type: ed25519,rsa etc
+    #     ssh_key_type: rsa
+    #   with_items:
+    #     - "{{ users_list }}"
+    - name: Copy keys
+      command: ssh-copy-id -i ~"{{ remote_user }}"/.ssh/id_rsa.pub "{{ remote_user }}"@"{{ item }}"
+      # with_items: "{{ server_list }}"
+      with_items:
+      - "{{ groups['workers'] }}"
+      - "{{ groups['masters'] }}"
+
+    # - name: Creates the non-root user
+    #   user:
+    #     name: "{{ remote_user }}"
+    #     comment: "{{ remote_user }}"
+    #     shell: /bin/bash
+    #     groups: sudo
+    #     append: yes
+    #     generate_ssh_key: yes
+    #     # echo "devops1badpassword" | mkpasswd --stdin --method=sha-512 --salt="devops1mybadsalt"
+    #     password: $6$devops1mybadsalt$vPETGtncCxJNPWRbDQ.wf539Ek.5t.GM.VAFtBME6cNEVHkLvxLnfNSuQt8.QZH.gP60Ic7ZAfZNePzOeTkET1
+    #     # ssh_key_type: ed25519,rsa etc
+    #     ssh_key_type: rsa
+# - hosts: all
+#   become: yes
+#   vars:
+#     remote_user: "vagrant"
+#   tasks:
+#     # upload ssh key
+#     - authorized_key:
+#        user: "{{ remote_user }}"
+#        state: present
+#        manage_dir: yes
+#        key: "{{ lookup('file', '/home/{{ remote_user }}/.ssh/id_rsa.pub') }}"
+    # # configure ssh server
+    # - template:
+    #    src: ssh-setup.j2
+    #    dest: /etc/ssh/sshd_config
+    #    owner: root
+    #    mode: '0600'
+    #    validate: /usr/sbin/sshd -t -f %s
+    #    backup: yes
+    #  # restart sshd
+    # - service:
+    #    name: sshd
+    #    state: restarted
+
+#     - name: create the 'ubuntu' user
+#       # user: name=ubuntu append=yes state=present createhome=yes shell=/bin/bash
+#       user: name="{{ remote_user }}" append=yes state=present createhome=yes shell=/bin/bash
+#     # Configures the sudoers file to allow the ubuntu user to run sudo commands without a password prompt.
+#     - name: allow 'ubuntu' to have passwordless sudo
+#       lineinfile:
+#         dest: /etc/sudoers
+#         # line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
+#         line: '{{ remote_user }} ALL=(ALL) NOPASSWD: ALL'
+#         validate: 'visudo -cf %s'
+#      # Adds the public key in your local machine (usually ~/.ssh/id_rsa.pub) to the remote ubuntu user's authorized
+#      # key list. This will allow you to SSH into each server as the ubuntu user.
+#     # - name: set up authorized keys for the ubuntu user
+#     #   authorized_key: user=ubuntu key="{{item}}"
+#     #   with_file:
+#     #     - ~/.ssh/id_rsa.pub
+#     # upload ssh key
+#     - authorized_key:
+#         user: "{{ remote_user }}"
+#         state: present
+#         manage_dir: yes
+#         key: "{{ lookup('file', '/home/{{ remote_user }}/.ssh/id_rsa.pub') }}"
