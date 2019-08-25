@@ -28,9 +28,9 @@ vgmaster01 192.168.10.6
 
 
 K8s workers
-vgworker01 192.168.0.7
-vgworker02 192.168.0.8
-vgworker02 192.168.0.9
+vgworker01 192.168.10.7
+vgworker02 192.168.10.8
+vgworker02 192.168.10.9
 
 ~~~~
 
