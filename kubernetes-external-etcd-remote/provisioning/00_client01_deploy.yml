@@ -1,0 +1,26 @@
+---
+- name: "Deploy client - cfssl, kubectl"
+# hosts_entry.yml ansible_eth1.ipv4.address etc environment variables
+# roles\common\tasks\main.yml ansible_distribution etc environment variables
+  gather_facts: true
+  hosts:  clients
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3 # Ubuntu specific
+    remote_user: vagrant
+  pre_tasks:
+  - name: "Create ssh keys for vagrant user"
+    user:
+      name: "{{ remote_user }}"
+      groups: "sudo"
+      generate_ssh_key: yes
+      ssh_key_type: rsa
+      # echo "devops1badpassword" | mkpasswd --stdin --method=sha-512 --salt="devops1mybadsalt"
+      password: $6$devops1mybadsalt$vPETGtncCxJNPWRbDQ.wf539Ek.5t.GM.VAFtBME6cNEVHkLvxLnfNSuQt8.QZH.gP60Ic7ZAfZNePzOeTkET1
+  - name: "Copy ssh keys"
+    command: ssh-copy-id -i ~"{{ remote_user }}"/.ssh/id_rsa.pub "{{ remote_user }}"@"{{ item }}"
+    with_items:
+      - "{{ groups['mastercluster'] }}"
+      - "{{ groups['workercluster'] }}"
+      - "{{ groups['etcdcluster'] }}"
+  # tasks:

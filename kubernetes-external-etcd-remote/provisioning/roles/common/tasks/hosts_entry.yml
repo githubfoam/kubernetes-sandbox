@@ -1,0 +1,20 @@
+---
+
+- name: Add mappings to /etc/hosts
+  blockinfile:
+    path: /etc/hosts
+    block: |
+      {{ item.ip }} {{ item.namelong }} {{ item.nameshort }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK {{ item.nameshort }}"
+  with_items:
+    # - { ip: "{{ ansible_eth1.ipv4.address }}", namelong: "{{ ansible_fqdn }}.local", nameshort:  "{{ ansible_nodename }}" }
+    - { ip: 192.168.10.2, namelong: vgetcd01.local, nameshort: vgetcd01  }
+    - { ip: 192.168.10.3, namelong: vgetcd02.local, nameshort: vgetcd02  }
+    - { ip: 192.168.10.4, namelong: vgetcd03.local, nameshort: vgetcd03  }
+    - { ip: 192.168.10.5, namelong: vgmaster01.local, nameshort: vgmaster01 }
+    - { ip: 192.168.10.6, namelong: vgmaster02.local, nameshort: vgmaster02}
+    - { ip: 192.168.10.7, namelong: vgworker01.local, nameshort: vgworker01  }
+    - { ip: 192.168.10.8, namelong: vgworker02.local, nameshort: vgworker02  }
+    - { ip: 192.168.10.9, namelong: vgworker03.local, nameshort: vgworker03  }
+    - { ip: 192.168.10.13, namelong: vgclient01.local, nameshort: vgclient01  }
+  when: add_host_entries

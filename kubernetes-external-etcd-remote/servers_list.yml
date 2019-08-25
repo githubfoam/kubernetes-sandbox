@@ -1,0 +1,105 @@
+---
+- vagrant_box_host: "vgclient01"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbclient01"
+  vbox_ram: 1024
+  vbox_cpu: 1
+  network_type: "private_network"
+  ip: 192.168.10.13
+  server_bootstrap: "provisioning/deploy.yml"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgmaster01"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbmaster01"
+  vbox_ram: 1024
+  vbox_cpu: 2
+  network_type: "private_network"
+  ip: 192.168.10.5
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "k8snodes.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgmaster02"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbmaster02"
+  vbox_ram: 1024
+  vbox_cpu: 2
+  network_type: "private_network"
+  ip: 192.168.10.6
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "k8snodes.sh"
+  ansible_version: 2.8.4
+
+
+- vagrant_box_host: "vgetcd01"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbetcd01"
+  vbox_ram: 512
+  vbox_cpu: 2
+  network_type: "private_network"
+  ip: 192.168.10.2
+  guest_port1: 8001
+  host_port1: 8002
+  guest_port2: 8080
+  host_port2: 8080
+  guest_port3: 30000
+  host_port3: 30000
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "proxy_etcd1.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgetcd02"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbetcd02"
+  vbox_ram: 512
+  vbox_cpu: 2
+  network_type: "private_network"
+  ip: 192.168.10.3
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "proxy_etcd2.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgetcd03"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbetcd03"
+  vbox_ram: 512
+  vbox_cpu: 2
+  network_type: "private_network"
+  ip: 192.168.10.4
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "proxy_etcd3.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgworker01"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbworker01"
+  vbox_ram: "1024"
+  vbox_cpu: 3
+  network_type: "private_network"
+  ip: 192.168.10.7
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "k8snodes.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgworker02"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbworker02"
+  vbox_ram: 1024
+  vbox_cpu: 3
+  network_type: "private_network"
+  ip: 192.168.10.8
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "k8snodes.sh"
+  ansible_version: 2.8.4
+
+- vagrant_box_host: "vgworker03"
+  vagrant_box: "bento/ubuntu-16.04"
+  vbox_name: "vbworker03"
+  vbox_ram: 2048
+  vbox_cpu: 3
+  network_type: "private_network"
+  ip: 192.168.10.9
+  server_bootstrap: "provisioning/deploy.yml"
+  server_script: "k8snodes.sh"
+  ansible_version: 2.8.4

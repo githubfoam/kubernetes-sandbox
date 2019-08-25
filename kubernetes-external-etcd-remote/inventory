@@ -1,0 +1,23 @@
+# https://docs.ansible.com/ansible/latest/network/getting_started/first_inventory.html
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+# Inventory, vagrant local passwordless ssh connection
+
+[clients]
+vgclient01 ansible_connection=local
+
+[etcdcluster]
+vgetcd01 ansible_connection=local
+vgetcd02 ansible_connection=local
+vgetcd03 ansible_connection=local
+
+[mastercluster]
+vgmaster01 ansible_connection=local
+vgmaster02 ansible_connection=local
+
+[workercluster]
+vgworker01 ansible_connection=local
+vgworker02 ansible_connection=local
+vgworker03 ansible_connection=local
+
+# [all:vars]
+# ansible_python_interpreter=/usr/bin/python3
