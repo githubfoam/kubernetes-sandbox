@@ -1,193 +1,92 @@
 # kubernetes sandbox
 
-~~~~
 cross platform(freebsd,lin,win,mac..etc)
+~~~~
+Container runtimes
+On each of your machines, install Docker. Version 18.06.2 is recommended, but 1.11, 1.12, 1.13, 17.03 and 18.09 are known to work as well. Keep track of the latest verified Docker version in the Kubernetes release notes.
+https://kubernetes.io/docs/setup/production-environment/container-runtimes/#docker
 
-vagrant global-status
-id       name            provider   state    directory
------------------------------------------------------------------------------------------------------------
-c34c93c  k8s-master01    virtualbox running  C:/multimachine/kubernetes-sandbox-remote
-adb4ffe  worker01        virtualbox running  C:/multimachine/kubernetes-sandbox-remote
-2e21187  worker02        virtualbox running  C:/multimachine/kubernetes-sandbox-remote
-b39b49d  remotecontrol01 virtualbox running  C:/multimachine/kubernetes-sandbox-remote
+ Version 18.06.2 is recommended, only docker-ce
+- 'docker-ce{{ validated_dockerv }}'
+# - 'docker-ce-cli{{ validated_dockerv }}'
+# - containerd.io
 
-vagrant ssh remotecontrol01
-
-vagrant@remotecontrol01:~$ sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/initial.yml
- [WARNING]: Found variable using reserved name: remote_user
-
-
-PLAY [localhost] **************************************************************************************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************************************************************************
-ok: [localhost]
-
-TASK [Create user accounts and add users to groups] ***************************************************************************************************************************************************************
-changed: [localhost] => (item=vagrant)
-
-TASK [Copy keys] **************************************************************************************************************************************************************************************************
-The authenticity of host 'k8s-master01 (192.168.50.10)' can't be established.
-ECDSA key fingerprint is SHA256:1Z76nTl7aEpVhcnFIanMDmBiVXrhL9SXkGVxN7LcLD0.
-Are you sure you want to continue connecting (yes/no)? yes
-vagrant@k8s-master01's password:
-changed: [localhost] => (item=k8s-master01)
-The authenticity of host 'worker01 (192.168.50.11)' can't be established.
-ECDSA key fingerprint is SHA256:1Z76nTl7aEpVhcnFIanMDmBiVXrhL9SXkGVxN7LcLD0.
-Are you sure you want to continue connecting (yes/no)? yes
-vagrant@worker01's password:
-changed: [localhost] => (item=worker01)
-The authenticity of host 'worker02 (192.168.50.12)' can't be established.
-ECDSA key fingerprint is SHA256:1Z76nTl7aEpVhcnFIanMDmBiVXrhL9SXkGVxN7LcLD0.
-Are you sure you want to continue connecting (yes/no)? yes
-vagrant@worker02's password:
-changed: [localhost] => (item=worker02)
-
-PLAY RECAP ********************************************************************************************************************************************************************************************************
-localhost                  : ok=3    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+v1.15 Release Notes
+The list of validated docker versions remains unchanged.
+The current list is 1.13.1, 17.03, 17.06, 17.09, 18.06, 18.09. (#72823, #72831)
+https://kubernetes.io/docs/setup/release/notes/
 
 ~~~~
 
 ~~~~
-vagrant@remotecontrol01:~$ sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/kube-dependencies.yml
+Install Docker CE
+## Set up the repository:
+### Install packages to allow apt to use a repository over HTTPS
+apt-get update && apt-get install apt-transport-https ca-certificates curl software-properties-common
 
-PLAY [all] ********************************************************************************************************************************************************************************************************
+### Add Docker’s official GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
-TASK [Gathering Facts] ********************************************************************************************************************************************************************************************
-ok: [worker02]
-ok: [k8s-master01]
-ok: [worker01]
+### Add Docker apt repository.
+add-apt-repository \
+ "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+ $(lsb_release -cs) \
+ stable"
 
-TASK [Remove swapfile from /etc/fstab] ****************************************************************************************************************************************************************************
-ok: [k8s-master01] => (item=swap)
-ok: [worker02] => (item=swap)
-ok: [worker01] => (item=swap)
-changed: [k8s-master01] => (item=none)
-changed: [worker02] => (item=none)
-changed: [worker01] => (item=none)
+## Install Docker CE.
+apt-get update && apt-get install docker-ce=18.06.2~ce~3-0~ubuntu
 
-TASK [Disable swap] ***********************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
+# Setup daemon.
+cat > /etc/docker/daemon.json <<EOF
+{
+ "exec-opts": ["native.cgroupdriver=systemd"],
+ "log-driver": "json-file",
+ "log-opts": {
+   "max-size": "100m"
+ },
+ "storage-driver": "overlay2"
+}
+EOF
 
-TASK [APT: Install aptitude package] ******************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker01]
-changed: [worker02]
+mkdir -p /etc/systemd/system/docker.service.d
 
-TASK [Install packages that allow apt to be used over HTTPS] ******************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker01]
-changed: [worker02]
-
-TASK [Add an apt signing key for Docker] **************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
-
-TASK [Add apt repository for stable version] **********************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
-
-TASK [Install docker and its dependecies] *************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker01]
-changed: [worker02]
-
-TASK [install APT Transport HTTPS] ********************************************************************************************************************************************************************************
-ok: [k8s-master01]
-ok: [worker02]
-ok: [worker01]
-
-TASK [add Kubernetes apt-key] *************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
-
-TASK [add Kubernetes' APT repository] *****************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
-
-TASK [Install Kubernetes binaries] ********************************************************************************************************************************************************************************
-changed: [k8s-master01]
-changed: [worker02]
-changed: [worker01]
-
-PLAY [masters] ****************************************************************************************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************************************************************************
-ok: [k8s-master01]
-
-TASK [Install Kubernetes binaries] ********************************************************************************************************************************************************************************
-ok: [k8s-master01]
-
-PLAY RECAP ********************************************************************************************************************************************************************************************************
-k8s-master01               : ok=14   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-worker01                   : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-worker02                   : ok=12   changed=10   unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-~~~~
+# Restart docker.
+systemctl daemon-reload
+systemctl restart docker
 
 ~~~~
-vagrant@remotecontrol01:~$ sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/masters.yml                                           t/kube-cluster/hosts /vagrant/kube-cluster/initial.yml
-
-PLAY [masters] ****************************************************************************************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************************************************************************
-ok: [k8s-master01]
-
-TASK [Remove swapfile from /etc/fstab] ****************************************************************************************************************************************************************************
-ok: [k8s-master01] => (item=swap)
-ok: [k8s-master01] => (item=none)
-
-TASK [Disable swap] ***********************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-TASK [initialize the cluster] *************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-TASK [create .kube directory] *************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-TASK [copy admin.conf to user's kube config] **********************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-TASK [install Pod network] ****************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-PLAY RECAP ********************************************************************************************************************************************************************************************************
-k8s-master01               : ok=7    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ~~~~
-
+Swap disabled. You MUST disable swap in order for the kubelet to work properly
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#configure-cgroup-driver-used-by-kubelet-on-control-plane-node
 ~~~~
-vagrant@remotecontrol01:~$ sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/workers.yml
-
-PLAY [masters] ****************************************************************************************************************************************************************************************************
-
-TASK [get join command] *******************************************************************************************************************************************************************************************
-changed: [k8s-master01]
-
-TASK [set join command] *******************************************************************************************************************************************************************************************
-ok: [k8s-master01]
-
-PLAY [workers] ****************************************************************************************************************************************************************************************************
-
-TASK [Gathering Facts] ********************************************************************************************************************************************************************************************
-ok: [worker01]
-ok: [worker02]
-
-TASK [join cluster] ***********************************************************************************************************************************************************************************************
-changed: [worker02]
-changed: [worker01]
-
-PLAY RECAP ********************************************************************************************************************************************************************************************************
-k8s-master01               : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-worker01                   : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-worker02                   : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ~~~~
+apt-get update && apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+apt-get update
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#configure-cgroup-driver-used-by-kubelet-on-control-plane-node
+~~~~
+~~~~
+install only one pod network per cluster.
+For flannel to work correctly, you must pass --pod-network-cidr=10.244.0.0/16 to kubeadm init.
+Set /proc/sys/net/bridge/bridge-nf-call-iptables to 1 by running sysctl net.bridge.bridge-nf-call-iptables=1
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+~~~~
+~~~~
+The Inventory File
 
+Auto-Generated Inventory
+The first and simplest option is to not provide one to Vagrant at all. Vagrant will generate an inventory file encompassing all of the virtual machines it manages, and use it for provisioning machines
 
+Static Inventory
+The second option is for situations where you would like to have more control over the inventory management.
+With the inventory_path option, you can reference a specific inventory resource (e.g. a static inventory file, a dynamic inventory script or even multiple inventories stored in the same directory)
+https://www.vagrantup.com/docs/provisioning/ansible_intro.html
+~~~~
 
 ~~~~
 vagrant@k8s-master:~$ apt-cache madison docker-ce
@@ -212,25 +111,32 @@ vagrant@k8s-master:~$ apt-cache madison docker-ce
     kubelet |  1.14.3-00 | https://apt.kubernetes.io kubernetes-xenial/main amd64 Packages
 
 ~~~~
-~~~~  
-v1.15 Release Notes
-The list of validated docker versions remains unchanged.
-The current list is 1.13.1, 17.03, 17.06, 17.09, 18.06, 18.09. (#72823, #72831)
-https://kubernetes.io/docs/setup/release/notes/
+~~~~
+>vagrant global-status
+id       name            provider   state    directory
+-----------------------------------------------------------------------------------------------------------
+c34c93c  k8s-master01    virtualbox running  C:/multimachine/kubernetes-sandbox-remote
+adb4ffe  worker01        virtualbox running  C:/multimachine/kubernetes-sandbox-remote
+2e21187  worker02        virtualbox running  C:/multimachine/kubernetes-sandbox-remote
+b39b49d  remotecontrol01 virtualbox running  C:/multimachine/kubernetes-sandbox-remote
 
-Container runtimes
-On each of your machines, install Docker. Version 18.06.2 is recommended, but 1.11, 1.12, 1.13, 17.03 and 18.09 are known to work as well. Keep track of the latest verified Docker version in the Kubernetes release notes.
-https://kubernetes.io/docs/setup/production-environment/container-runtimes/
+>vagrant ssh remotecontrol01
 
-[WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
+vagrant@remotecontrol01:~$ history
+    1  sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/00_initial.yml
+    2  sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/01_kube-dependencies.yml
+    3  sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/02_masters.yml
+    4  sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/03_workers.yml
+    5  sudo ansible-playbook -i /vagrant/kube-cluster/hosts /vagrant/kube-cluster/04_clients.yml                                         
 
 ~~~~
+
 ~~~~
-vagrant@k8s-master01:~$ kubectl get nodes
-NAME           STATUS   ROLES    AGE   VERSION
-k8s-master01   Ready    master   14m   v1.15.2
-worker01       Ready    <none>   11m   v1.15.2
-worker02       Ready    <none>   11m   v1.15.2
+vagrant@remotecontrol01:~$ kubectl get nodes
+NAME           STATUS   ROLES    AGE     VERSION
+k8s-master01   Ready    master   8m39s   v1.15.3
+worker01       Ready    <none>   6m19s   v1.15.3
+worker02       Ready    <none>   6m13s   v1.15.3
 vagrant@k8s-master01:~$ kubectl get pods --all-namespaces
 NAMESPACE         NAME                                   READY   STATUS    RESTARTS   AGE
 heptio-sonobuoy   sonobuoy                               1/1     Running   0          11m
