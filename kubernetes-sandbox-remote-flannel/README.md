@@ -299,19 +299,140 @@ spec:
         deployment.extensions "hello-world" deleted
 
 ~~~~
-smoke test jenkins
+smoke test jenkins (single file)
 ~~~~
-vagrant@remotecontrol01:~$ kubectl create -f /vagrant/kubernetes-tutorial-6/jenkins-deployment.yaml --namespace=jenkins
+vagrant@remotecontrol01:~$ cat /vagrant/kubernetes-jenkins-2/jenkins-deployment.yaml
+apiVersion: extensions/v1beta1 # for versions before 1.7.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+      - name: jenkins-svc
+        image: jenkins/jenkins:lts
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-svc
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30000
+  selector:
+    app: jenkins
+vagrant@remotecontrol01:~$ kubectl create -f /vagrant/kubernetes-jenkins-2/jenkins-deployment.yaml
 deployment.extensions/jenkins-deployment created
 service/jenkins-svc created
+
+vagrant@remotecontrol01:~$ kubectl get deployments -o wide --watch
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+jenkins-deployment   1/1     1            1           5m32s
+
+vagrant@remotecontrol01:~$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+jenkins-deployment-f6f666f9-lv8h7   1/1     Running   0          3m37s
+vagrant@remotecontrol01:~$ kubectl describe services jenkins-svc
+Name:                     jenkins-svc
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=jenkins
+Type:                     NodePort
+IP:                       10.96.9.100
+Port:                     <unset>  8080/TCP
+TargetPort:               8080/TCP
+NodePort:                 <unset>  30000/TCP
+Endpoints:                192.168.1.27:8080
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+vagrant@remotecontrol01:~$ kubectl describe pod jenkins-deployment-f6f666f9-lv8h7 | grep "Node:"
+Node:           worker02/192.168.50.12
+vagrant@remotecontrol01:~$ curl http://192.168.50.12:30000
+<html><head><meta http-equiv='refresh' content='1;url=/login?from=%2F'/><script>window.location.replace('/login?from=%2F');</script></head><body style='background-color:white; color:white;'>
+
+
+Authentication required
+<!--
+You are authenticated as: anonymous
+Groups that you are in:
+
+Permission you need to have (but didn't): hudson.model.Hudson.Administer
+-->
+
+</body></html>                                                                                                                                                                                                     
+
+vagrant@remotecontrol01:~$ kubectl delete -f /vagrant/kubernetes-jenkins-2/jenkins-deployment.yaml
+deployment.extensions "jenkins-deployment" deleted
+service "jenkins-svc" deleted
+
+vagrant@remotecontrol01:~$ kubectl delete deployment jenkins-deployment
+Error from server (NotFound): deployments.extensions "jenkins-deployment" not found
+vagrant@remotecontrol01:~$ kubectl delete services jenkins-svc
+Error from server (NotFound): services "jenkins-svc" not found
+
+~~~~
+smoke test jenkins (seperate files)
+~~~~
+vagrant@remotecontrol01:~$ cat /vagrant/kubernetes-jenkins-1/jenkins-deployment.yaml
+apiVersion: extensions/v1beta1 # for versions before 1.7.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:lts
+        ports:
+        - containerPort: 8080
+vagrant@remotecontrol01:~$ cat /vagrant/kubernetes-jenkins-1/jenkins-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30000
+  selector:
+    app: jenkins
+
+vagrant@remotecontrol01:~$ kubectl create -f /vagrant/kubernetes-jenkins-1/jenkins-deployment.yaml --namespace=jenkins
+deployment.extensions/jenkins-deployment created
+service/jenkins-svc created
+
+vagrant@remotecontrol01:~$ kubectl create -f /vagrant/kubernetes-jenkins-1/jenkins-service.yaml --namespace=jenkins
+service/jenkins created
 
 vagrant@remotecontrol01:~$ kubectl get deployments  --all-namespaces -o wide
 NAMESPACE     NAME                 READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                     SELECTOR
 jenkins       jenkins-deployment   0/1     1            0           3s    jenkins      jenkins:2.60.3             app=jenkins
 
-vagrant@remotecontrol01:~$ kubectl delete -f /vagrant/kubernetes-tutorial-6/jenkins-deployment.yaml --namespace=jenkins
-deployment.extensions "jenkins-deployment" deleted
-service "nginx-svc" deleted
 
 vagrant@remotecontrol01:~$ kubectl  describe deployments --namespace=jenkins
 Name:                   jenkins-deployment
@@ -345,9 +466,6 @@ Events:
   ----    ------             ----  ----                   -------
   Normal  ScalingReplicaSet  28s   deployment-controller  Scaled up replica set jenkins-deployment-868cc579df to 1
 
-
-  vagrant@remotecontrol01:~$ kubectl create -f /vagrant/kubernetes-tutorial-6/jenkins-service.yaml --namespace=jenkins
-  service/jenkins created
 
   vagrant@remotecontrol01:~$ kubectl get pods -n jenkins
   NAME                                  READY   STATUS    RESTARTS   AGE
@@ -406,6 +524,8 @@ This may also be found at: /var/jenkins_home/secrets/initialAdminPassword
 *************************************************************
 *************************************************************
 
+vagrant@remotecontrol01:~$ kubectl logs -n jenkins jenkins-deployment-868cc579df-nmh5w | grep "An admin user has been created and a password generated"
+Jenkins initial setup is required. An admin user has been created and a password generated.
 
 Browse
 http://192.168.50.11:30000
@@ -427,8 +547,8 @@ cat: /var/jenkins_home/secrets/initialAdminPassword: No such file or directory
 vagrant@remotecontrol01:~$ kubectl get services -n jenkins
 NAME      TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 jenkins   NodePort   10.108.24.206   <none>        8080:30000/TCP   17m
-vagrant@remotecontrol01:~$ kubectl delete services example-service
-service "example-service" deleted
+vagrant@remotecontrol01:~$ kubectl delete services -n jenkins jenkins
+service "jenkins" deleted
 
 
 vagrant@remotecontrol01:~$ kubectl get deployment -n jenkins
@@ -436,5 +556,9 @@ NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
 jenkins-deployment   1/1     1            1           18m
 vagrant@remotecontrol01:~$ kubectl delete deployment -n jenkins jenkins-deployment
 deployment.extensions "jenkins-deployment" deleted
+
+alternative to delete:
+vagrant@remotecontrol01:~$ kubectl delete -f /vagrant/kubernetes-jenkins-1/jenkins-deployment.yaml --namespace=jenkins
+vagrant@remotecontrol01:~$ kubectl delete -f /vagrant/kubernetes-jenkins-1/jenkins-service.yaml --namespace=jenkins
 
 ~~~~
