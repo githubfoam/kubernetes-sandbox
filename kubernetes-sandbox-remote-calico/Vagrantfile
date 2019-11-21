@@ -1,7 +1,6 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# https://www.digitalocean.com/community/tutorials/how-to-create-a-kubernetes-cluster-using-kubeadm-on-ubuntu-16-04
 Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
@@ -10,21 +9,18 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.define "k8s-master01" do |k8scluster|
-      # k8scluster.vm.box = "bento/ubuntu-16.04"
-      # k8scluster.vm.box = "bento/ubuntu-18.04"
-      # k8scluster.vm.box = "bento/ubuntu-18.10"
-      k8scluster.vm.box = "bento/ubuntu-19.04"
+      k8scluster.vm.box = "bento/ubuntu-16.04"
       k8scluster.vm.hostname = "k8s-master01"
       k8scluster.vm.network "private_network", ip: "192.168.50.10"
       k8scluster.vm.provider "virtualbox" do |vb|
           vb.name = "k8s-master01"
-          vb.memory = "2048"
+          vb.memory = "4096"
       end
       k8scluster.vm.provision "ansible_local" do |ansible|
         ansible.playbook = "provisioning/deploy.yml"
         ansible.become = true
         ansible.compatibility_mode = "2.0"
-        ansible.version = "2.8.3" # ubuntu-19.04s
+        ansible.version = "2.9.1" # ubuntu-19.04s
         ansible.extra_vars = {
                 master_ip: "192.168.50.10",
             }
@@ -36,8 +32,6 @@ Vagrant.configure("2") do |config|
 
     config.vm.define "worker01" do |k8scluster|
         k8scluster.vm.box = "bento/ubuntu-16.04"
-        # k8scluster.vm.box = "bento/ubuntu-18.04"
-        # k8scluster.vm.box = "bento/ubuntu-18.10"
         k8scluster.vm.hostname = "worker01"
         k8scluster.vm.network "private_network", ip: "192.168.50.11"
         k8scluster.vm.provider "virtualbox" do |vb|
@@ -48,7 +42,7 @@ Vagrant.configure("2") do |config|
           ansible.playbook = "provisioning/deploy.yml"
           ansible.become = true
           ansible.compatibility_mode = "2.0"
-          ansible.version = "2.8.3" # ubuntu-16.04
+          ansible.version = "2.9.1" # ubuntu-19.04s
           ansible.extra_vars = {
                   worker1_ip: "192.168.50.11",
               }
@@ -60,9 +54,7 @@ Vagrant.configure("2") do |config|
 
 
       config.vm.define "worker02" do |k8scluster|
-          # k8scluster.vm.box = "bento/ubuntu-16.04"
-          # k8scluster.vm.box = "bento/ubuntu-18.04"
-          k8scluster.vm.box = "bento/ubuntu-18.10"
+          k8scluster.vm.box = "bento/ubuntu-16.04"
           k8scluster.vm.hostname = "worker02"
           k8scluster.vm.network "private_network", ip: "192.168.50.12"
           k8scluster.vm.provider "virtualbox" do |vb|
@@ -73,8 +65,7 @@ Vagrant.configure("2") do |config|
             ansible.playbook = "provisioning/deploy.yml"
             ansible.become = true
             ansible.compatibility_mode = "2.0"
-            # ansible.version = "2.8.3" # ubuntu-16.04
-            ansible.version = "2.8.2" # ubuntu-18.10
+            ansible.version = "2.9.1" # ubuntu-19.04s
             ansible.extra_vars = {
                     worker2_ip: "192.168.50.12",
                 }
@@ -85,22 +76,18 @@ Vagrant.configure("2") do |config|
         end
 
         config.vm.define "remotecontrol01" do |k8scluster|
-            # k8scluster.vm.box = "bento/ubuntu-16.04" # OK
-            k8scluster.vm.box = "bento/centos-7.6" # OK
-            # k8scluster.vm.box = "bento/ubuntu-18.04"
-            # k8scluster.vm.box = "bento/ubuntu-18.10"
+            k8scluster.vm.box = "bento/centos-7.7" # OK
             k8scluster.vm.hostname = "remotecontrol01"
             k8scluster.vm.network "private_network", ip: "192.168.50.13"
             k8scluster.vm.provider "virtualbox" do |vb|
                 vb.name = "remotecontrol01"
-                # vb.memory = "512"
+                vb.memory = "512"
             end
             k8scluster.vm.provision "ansible_local" do |ansible|
               ansible.playbook = "provisioning/deploy.yml"
               ansible.become = true
               ansible.compatibility_mode = "2.0"
-              ansible.version = "2.8.2" # ubuntu-16.04
-              # ansible.version = "2.8.2" # centos-7.6
+              ansible.version = "2.9.1" # centos-7.6
               # ansible.extra_vars = {
                   #     node_ip: "192.168.50.12",
                   # }
